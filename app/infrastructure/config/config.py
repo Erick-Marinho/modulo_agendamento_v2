@@ -18,6 +18,17 @@ class Settings(BaseSettings):
     PGADMIN_DEFAULT_EMAIL: str = Field(..., description="Email do Pgadmin")
     PGADMIN_DEFAULT_PASSWORD: str = Field(..., description="Senha do Pgadmin")
 
+    # ==== Configurações do OpenAI ====
+
+    OPENAI_API_KEY: str = Field(..., description="Chave da API do OpenAI")
+    OPENAI_MODEL_NAME: str = Field(..., description="Modelo do OpenAI")
+    OPENAI_TEMPERATURE: float = Field(..., description="Temperatura do OpenAI")
+
+    # ==== Configurações do LangSmith ====
+    LANGSMITH_API_KEY: str = Field(..., description="Chave da API do LangSmith")
+    LANGSMITH_PROJECT: str = Field(..., description="Projeto do LangSmith")
+    LANGSMITH_TRACING_V2: bool = Field(..., description="Tracagem do LangSmith")
+
 
 def mask_sensitive_data(value: str, show_chars: int = 4) -> str:
     """
@@ -39,3 +50,9 @@ if __name__ == "__main__":
     print(
         f"PGADMIN_DEFAULT_PASSWORD: {mask_sensitive_data(settings.PGADMIN_DEFAULT_PASSWORD)}"
     )
+    print(f"OPENAI_API_KEY: {mask_sensitive_data(settings.OPENAI_API_KEY)}")
+    print(f"OPENAI_MODEL_NAME: {settings.OPENAI_MODEL_NAME}")
+    print(f"OPENAI_TEMPERATURE: {settings.OPENAI_TEMPERATURE}")
+    print(f"LANGSMITH_API_KEY: {mask_sensitive_data(settings.OPENAI_API_KEY)}")
+    print(f"LANGSMITH_PROJECT: {settings.OPENAI_MODEL_NAME}")
+    print(f"LANGSMITH_TRACING_V2: {settings.OPENAI_TEMPERATURE}")
