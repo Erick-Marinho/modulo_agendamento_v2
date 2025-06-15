@@ -8,6 +8,11 @@ dependencies = [
     "black>=25.1.0",
     "fastapi[standard]>=0.115.12",
     "isort>=6.0.1",
+    "langchain-core>=0.3.65",
+    "langchain-openai>=0.3.23",
+    "langgraph>=0.4.8",
+    "langsmith>=0.3.45",
+    "langgraph-cli[inmem]>=0.2.10",
     "pydantic-settings>=2.9.1",
     "python-dotenv>=1.1.0",
 ]

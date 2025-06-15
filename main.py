@@ -2,6 +2,8 @@ import logging
 from dotenv import load_dotenv
 from fastapi import FastAPI
 
+from app.presentation.scheduling_routers import router as message_routers
+
 load_dotenv()
 
 logging.basicConfig(
@@ -20,6 +22,8 @@ app = FastAPI(
     redoc_url="/redoc",
 )
 
+app.include_router(message_routers, prefix="/message", tags=["message"])
+
 
 @app.get("/", summary="Verifica se o servidor está online")
 async def root():
@@ -28,4 +32,3 @@ async def root():
         "version": app.version,
         "docs": "/docs",
     }
-

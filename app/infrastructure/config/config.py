@@ -36,4 +36,6 @@ if __name__ == "__main__":
     print(f"POSTGRES_PASSWORD: {mask_sensitive_data(settings.POSTGRES_PASSWORD)}")
     print(f"POSTGRES_DB: {settings.POSTGRES_DB}")
     print(f"PGADMIN_DEFAULT_EMAIL: {settings.PGADMIN_DEFAULT_EMAIL}")
-    print(f"PGADMIN_DEFAULT_PASSWORD: {mask_sensitive_data(settings.PGADMIN_DEFAULT_PASSWORD)}")
+    print(
+        f"PGADMIN_DEFAULT_PASSWORD: {mask_sensitive_data(settings.PGADMIN_DEFAULT_PASSWORD)}"
+    )
