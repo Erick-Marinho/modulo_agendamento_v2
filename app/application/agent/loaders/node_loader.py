@@ -41,7 +41,7 @@ class NodeLoader:
                 try:
                     # Constrói o caminho completo do módulo para importação
                     module_path = f"{package.__name__}.{module_name}.{module_name}_node"
-                    
+
                     # Importa o módulo do nó dinamicamente
                     module = importlib.import_module(module_path)
 
@@ -49,12 +49,14 @@ class NodeLoader:
                     if hasattr(module, "get_node_definition"):
                         get_node_definition_func = getattr(module, "get_node_definition")
                         node_name, node_function = get_node_definition_func()
-                        
+
                         # Adiciona o nó ao nosso registro
                         self.nodes[node_name] = node_function
                         print(f"  -> Nó '{node_name}' carregado com sucesso.")
                     else:
-                        print(f"  [AVISO] Módulo '{module_path}' não possui a função 'get_node_definition'.")
+                        print(
+                            f"  [AVISO] Módulo '{module_path}' não possui a função 'get_node_definition'."
+                        )
 
                 except ImportError as e:
                     print(f"  [ERRO] Falha ao importar o nó '{module_name}': {e}")

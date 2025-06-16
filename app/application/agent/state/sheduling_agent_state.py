@@ -20,7 +20,7 @@ class SchedulingAgentState(TypedDict):
     scheduling_data: SchedulingData
 
     # Controle de fluxo
-    next_step: str
+    next_step: Optional[str] = None
 
     # Contexto da conversa
     conversation_context: Optional[str]

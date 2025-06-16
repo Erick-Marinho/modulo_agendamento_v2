@@ -3,6 +3,7 @@ from app.application.agent.state.sheduling_agent_state import SchedulingAgentSta
 from app.application.agent.loaders.node_loader import NodeLoader
 from app.application.agent.loaders.edge_loader import EdgeLoader
 
+
 class SchedulingAgentBuilder:
     """
     Classe responsável por construir o agente de agendamento.
@@ -23,9 +24,9 @@ class SchedulingAgentBuilder:
         print("Construindo o grafo do agente...")
         self._add_nodes()
         self._add_edges()
-        
+
         self.agent_graph.set_entry_point("ORCHESTRATOR")
-        
+
         print("Compilando o grafo...")
         return self.agent_graph.compile()
 
@@ -45,7 +46,7 @@ class SchedulingAgentBuilder:
         """
         edge_definitions = self.edge_loader.load_edges()
         print(f"Adicionando {len(edge_definitions)} definições de aresta...")
-        
+
         for edge_def in edge_definitions:
             source_node = edge_def.get("source")
             if not source_node:
@@ -53,21 +54,20 @@ class SchedulingAgentBuilder:
 
             if "condition" in edge_def and "mapping" in edge_def:
                 self.agent_graph.add_conditional_edges(
-                    source_node,
-                    edge_def["condition"],
-                    edge_def["mapping"]
+                    source_node, edge_def["condition"], edge_def["mapping"]
                 )
                 print(f"  -> Aresta condicional de '{source_node}' adicionada")
             elif "destination" in edge_def:
-                self.agent_graph.add_edge(
-                    source_node,
-                    edge_def["destination"]
+                self.agent_graph.add_edge(source_node, edge_def["destination"])
+                print(
+                    f"  -> Aresta normal de '{source_node}' para '{edge_def['destination']}' adicionada"
                 )
-                print(f"  -> Aresta normal de '{source_node}' para '{edge_def['destination']}' adicionada")
+
 
 async def get_scheduling_agent():
     """
     Retorna o agente de agendamento compilado.
     """
     builder = SchedulingAgentBuilder()
-    return builder.build_agent()
+    agent = builder.build_agent()
+    return agent

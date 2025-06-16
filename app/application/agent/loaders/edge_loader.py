@@ -4,6 +4,7 @@ from typing import List, Dict, Any
 
 from app.application.agent import edges
 
+
 class EdgeLoader:
     """
     Classe responsável por descobrir e carregar dinamicamente as definições
@@ -15,7 +16,7 @@ class EdgeLoader:
         Inicializa o carregador de arestas.
 
         Args:
-            packages (List[Any]): Lista de pacotes Python onde as arestas 
+            packages (List[Any]): Lista de pacotes Python onde as arestas
                                   serão procuradas.
         """
         self.packages = packages
@@ -45,7 +46,7 @@ class EdgeLoader:
                         definitions = get_definitions_func()
                         self.edge_definitions.extend(definitions)
                         print(f"  -> Arestas de '{module_name}' carregadas.")
-                    
+
                 except Exception as e:
                     print(f"  [ERRO] Falha ao carregar arestas de '{module_name}': {e}")
 

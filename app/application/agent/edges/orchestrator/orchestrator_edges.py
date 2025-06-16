@@ -7,9 +7,4 @@ def get_edge_definitions() -> List[Dict[str, Any]]:
     """
     Retorna as definições de arestas para o nó orquestrador.
     """
-    return [
-        {
-            "source": "ORCHESTRATOR",
-            "destination": END
-        }
-    ]
+    return [{"source": "ORCHESTRATOR", "destination": END}]
