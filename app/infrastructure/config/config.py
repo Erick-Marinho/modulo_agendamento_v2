@@ -1,5 +1,5 @@
 from pydantic_settings import BaseSettings
-from pydantic import Field
+from pydantic import Field, SecretStr
 
 
 class Settings(BaseSettings):
@@ -10,24 +10,32 @@ class Settings(BaseSettings):
     # ==== Configurações do Postgres ====
 
     POSTGRES_USER: str = Field(..., description="Usuário do Postgres")
-    POSTGRES_PASSWORD: str = Field(..., description="Senha do Postgres")
+    POSTGRES_PASSWORD: SecretStr = Field(..., description="Senha do Postgres")
     POSTGRES_DB: str = Field(..., description="Nome do banco de dados")
 
     # ==== Configurações do Pgadmin ====
 
     PGADMIN_DEFAULT_EMAIL: str = Field(..., description="Email do Pgadmin")
-    PGADMIN_DEFAULT_PASSWORD: str = Field(..., description="Senha do Pgadmin")
+    PGADMIN_DEFAULT_PASSWORD: SecretStr = Field(..., description="Senha do Pgadmin")
 
     # ==== Configurações do OpenAI ====
 
-    OPENAI_API_KEY: str = Field(..., description="Chave da API do OpenAI")
+    OPENAI_API_KEY: SecretStr = Field(..., description="Chave da API do OpenAI")
     OPENAI_MODEL_NAME: str = Field(..., description="Modelo do OpenAI")
     OPENAI_TEMPERATURE: float = Field(..., description="Temperatura do OpenAI")
 
     # ==== Configurações do LangSmith ====
-    LANGSMITH_API_KEY: str = Field(..., description="Chave da API do LangSmith")
+    LANGSMITH_API_KEY: SecretStr = Field(..., description="Chave da API do LangSmith")
     LANGSMITH_PROJECT: str = Field(..., description="Projeto do LangSmith")
-    LANGSMITH_TRACING_V2: bool = Field(default=False, description="Tracagem do LangSmith")
+    LANGSMITH_TRACING_V2: bool = Field(
+        default=False, description="Tracagem do LangSmith"
+    )
+
+    model_config = {
+        "env_file": ".env",
+        "env_file_encoding": "utf-8",
+        "extra": "ignore"
+    }
 
 
 def mask_sensitive_data(value: str, show_chars: int = 4) -> str:

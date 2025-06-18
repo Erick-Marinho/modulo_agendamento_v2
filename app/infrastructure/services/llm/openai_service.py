@@ -13,16 +13,23 @@ class OpenAIService:
         self.llm = ChatOpenAI(
             model=settings.OPENAI_MODEL_NAME,
             temperature=settings.OPENAI_TEMPERATURE,
-            api_key=settings.OPENAI_API_KEY,
+            api_key=settings.OPENAI_API_KEY.get_secret_value(),
         )
 
-    def orchestrator_prompt_template(self, user_query: str):
+    def orchestrator_prompt_template(self, user_query: str, user_memories: str):
         """
         Prepara o prompt do agente orquestrador.
         """
         chain = ORCHESTRATOR_PROMPT_TEMPLATE | self.llm
         try:
-            llm_response = chain.invoke({"message": user_query, "chat_history": [], "agent_scratchpad": []})
+            llm_response = chain.invoke(
+                {
+                    "message": user_query,
+                    "chat_history": [],
+                    "agent_scratchpad": [],
+                    "user_memories": user_memories,
+                }
+            )
             return llm_response
         except Exception as e:
             logger.error(f"Erro ao gerar resposta do agente orquestrador: {e}")

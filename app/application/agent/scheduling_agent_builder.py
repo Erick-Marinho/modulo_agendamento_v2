@@ -2,6 +2,7 @@ from langgraph.graph import StateGraph
 from app.application.agent.state.sheduling_agent_state import SchedulingAgentState
 from app.application.agent.loaders.node_loader import NodeLoader
 from app.application.agent.loaders.edge_loader import EdgeLoader
+from app.infrastructure.pesistence.postgres_persistence import get_checkpointer, get_store
 
 
 class SchedulingAgentBuilder:
@@ -17,7 +18,7 @@ class SchedulingAgentBuilder:
         self.node_loader = NodeLoader()
         self.edge_loader = EdgeLoader()
 
-    def build_agent(self):
+    async def build_agent(self):
         """
         Constrói e compila o agente de agendamento.
         """
@@ -28,7 +29,10 @@ class SchedulingAgentBuilder:
         self.agent_graph.set_entry_point("ORCHESTRATOR")
 
         print("Compilando o grafo...")
-        return self.agent_graph.compile()
+        checkpointer = await get_checkpointer()
+        store = await get_store()
+        
+        return self.agent_graph.compile(checkpointer=checkpointer, store=store)
 
     def _add_nodes(self):
         """
@@ -69,5 +73,5 @@ async def get_scheduling_agent():
     Retorna o agente de agendamento compilado.
     """
     builder = SchedulingAgentBuilder()
-    agent = builder.build_agent()
+    agent = await builder.build_agent()
     return agent

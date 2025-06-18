@@ -14,7 +14,7 @@ def get_last_message(state: SchedulingAgentState) -> Optional[BaseMessage]:
         state (SchedulingAgentState): O estado atual do agente.
 
     Returns:
-        Optional[BaseMessage]: O último objeto de mensagem (como HumanMessage ou AIMessage), 
+        Optional[BaseMessage]: O último objeto de mensagem (como HumanMessage ou AIMessage),
                                ou None se a lista de mensagens estiver vazia.
     """
     messages = state.get("messages")
