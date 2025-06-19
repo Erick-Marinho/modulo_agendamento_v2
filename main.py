@@ -17,15 +17,14 @@ logger = logging.getLogger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    logger.info("🚀 Executando o setup da aplicação...")
+    logger.info("Executando o setup da aplicação...")
     
     try:
-        # A chamada continua a mesma. A mágica acontece dentro do `initialize_database`.
         await db_manager.initialize_database()
     except Exception as e:
-        logger.error(f"❌ Falha crítica durante a inicialização do banco de dados: {e}")
+        logger.error(f"Falha crítica durante a inicialização do banco de dados: {e}")
 
-    logger.info("✅ Setup concluído.")
+    logger.info("Setup concluído.")
     yield
 
 
