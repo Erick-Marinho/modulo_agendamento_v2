@@ -1,54 +1,44 @@
+# app/application/agent/loaders/edge_loader.py
 import importlib
 import pkgutil
 from typing import List, Dict, Any
-
 from app.application.agent import edges
+from app.application.agent.registry.edge_registry import edge_registry
+import logging
 
+logger = logging.getLogger(__name__)
 
 class EdgeLoader:
     """
-    Classe responsável por descobrir e carregar dinamicamente as definições
-    de arestas do grafo do agente.
+    Carregador de arestas que utiliza o sistema de registry.
     """
 
-    def __init__(self, packages: List[Any] = [edges]):
-        """
-        Inicializa o carregador de arestas.
-
-        Args:
-            packages (List[Any]): Lista de pacotes Python onde as arestas
-                                  serão procuradas.
-        """
+    def __init__(self, packages: List = [edges]):
         self.packages = packages
-        self.edge_definitions: List[Dict[str, Any]] = []
+        self._loaded = False
 
     def load_edges(self) -> List[Dict[str, Any]]:
         """
-        Varre os pacotes, importa os módulos de arestas e carrega suas definições.
-
-        Returns:
-            List[Dict[str, Any]]: Uma lista de dicionários, cada um representando
-                                  a especificação de uma aresta a ser adicionada
-                                  ao grafo.
+        Importa os módulos de arestas para ativar os registros,
+        depois retorna as arestas do registry.
         """
-        if self.edge_definitions:
-            return self.edge_definitions
+        if self._loaded:
+            return edge_registry.get_edges()
 
-        print("Iniciando descoberta de arestas...")
+        logger.info("Iniciando descoberta e carregamento de arestas via registry...")
+
         for package in self.packages:
-            for _, module_name, _ in pkgutil.iter_modules(package.__path__):
-                try:
+            for _, module_name, is_pkg in pkgutil.iter_modules(package.__path__):
+                if is_pkg:
                     module_path = f"{package.__name__}.{module_name}"
-                    module = importlib.import_module(module_path)
-
-                    if hasattr(module, "get_edge_definitions"):
-                        get_definitions_func = getattr(module, "get_edge_definitions")
-                        definitions = get_definitions_func()
-                        self.edge_definitions.extend(definitions)
-                        print(f"  -> Arestas de '{module_name}' carregadas.")
-
-                except Exception as e:
-                    print(f"  [ERRO] Falha ao carregar arestas de '{module_name}': {e}")
-
-        print("Descoberta de arestas finalizada.")
-        return self.edge_definitions
+                    try:
+                        importlib.import_module(module_path)
+                        logger.debug(f"Pacote de aresta '{module_name}' importado.")
+                    except ImportError as e:
+                        logger.warning(f"Falha ao importar pacote de aresta '{module_path}': {e}")
+        
+        self._loaded = True
+        loaded_edges = edge_registry.get_edges()
+        
+        logger.info(f"Carregamento finalizado. {len(loaded_edges)} arestas ativas encontradas.")
+        return loaded_edges

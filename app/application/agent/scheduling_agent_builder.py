@@ -3,6 +3,10 @@ from app.application.agent.state.sheduling_agent_state import SchedulingAgentSta
 from app.application.agent.loaders.node_loader import NodeLoader
 from app.application.agent.loaders.edge_loader import EdgeLoader
 from app.infrastructure.pesistence.postgres_persistence import get_checkpointer, get_store
+from app.application.agent.registry.node_registry import node_registry
+import logging
+
+logger = logging.getLogger(__name__)
 
 class SchedulingAgentBuilder:
     """
@@ -39,37 +43,42 @@ class SchedulingAgentBuilder:
 
     def _add_nodes(self):
         """
-        Adiciona os nós ao grafo de estados.
+        Carrega e adiciona nodes usando o sistema de registry.
         """
         nodes = self.node_loader.load_nodes()
-        print(f"Adicionando {len(nodes)} nós ao grafo...")
+        
+        logger.info(f"Adicionando {len(nodes)} nós ativos ao grafo...")
+        
         for name, function in nodes.items():
             self.agent_graph.add_node(name, function)
-            print(f"  -> Nó '{name}' adicionado ao grafo")
+            metadata = node_registry.get_node_metadata(name)
+            logger.info(f"  -> Nó '{name}' adicionado. (Prioridade: {metadata.get('priority', 0)}, Timeout: {metadata.get('timeout', 'N/A')})")
 
     def _add_edges(self):
-        """
-        Adiciona as arestas ao grafo de estados.
-        """
+        """Carrega e adiciona arestas usando o sistema de registry."""
         edge_definitions = self.edge_loader.load_edges()
-        print(f"Adicionando {len(edge_definitions)} definições de aresta...")
+        
+        logger.info(f"Adicionando {len(edge_definitions)} definições de aresta ao grafo...")
 
         for edge_def in edge_definitions:
             source_node = edge_def.get("source")
-            if not source_node:
-                continue
 
-            if "condition" in edge_def and "mapping" in edge_def:
+            # Arestas condicionais
+            if edge_def.get("type") == "conditional":
                 self.agent_graph.add_conditional_edges(
-                    source_node, edge_def["condition"], edge_def["mapping"]
+                    source_node, 
+                    edge_def["condition"], 
+                    edge_def["mapping"]
                 )
-                print(f"  -> Aresta condicional de '{source_node}' adicionada")
-            elif "destination" in edge_def:
-                self.agent_graph.add_edge(source_node, edge_def["destination"])
-                print(
-                    f"  -> Aresta normal de '{source_node}' para '{edge_def['destination']}' adicionada"
-                )
-
+                destinations = ", ".join(edge_def["mapping"].values())
+                condition_name = edge_def["condition"].__name__
+                logger.info(f"  -> Aresta condicional '{source_node}' -> [{destinations}] via '{condition_name}' adicionada.")
+            
+            # Arestas simples
+            elif edge_def.get("type") == "simple":
+                destination = edge_def.get("destination")
+                self.agent_graph.add_edge(source_node, destination)
+                logger.info(f"  -> Aresta simples '{source_node}' -> '{destination}' adicionada.")
 
 async def get_scheduling_agent():
     """

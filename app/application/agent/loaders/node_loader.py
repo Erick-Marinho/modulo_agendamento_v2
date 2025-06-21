@@ -1,67 +1,63 @@
+# app/application/agent/loaders/node_loader.py
 import importlib
 import pkgutil
 from typing import Dict, Callable, List
 from app.application.agent import node
+from app.application.agent.registry.node_registry import node_registry
+import logging
 
+logger = logging.getLogger(__name__)
 
 class NodeLoader:
     """
-    Classe responsável por descobrir e carregar dinamicamente os nós do agente.
+    Carregador de nós que utiliza o sistema de registry com controle explícito.
     """
 
-    def __init__(self, packages: List[str] = [node]):
-        """
-        Inicializa o carregador de nós.
-
-        Args:
-            packages (List[str]): Lista de pacotes onde os nós serão procurados.
-        """
+    def __init__(self, packages: List = [node]):
         self.packages = packages
-        self.nodes: Dict[str, Callable] = {}
+        self._loaded = False
 
     def load_nodes(self) -> Dict[str, Callable]:
         """
-        Varre os pacotes, importa os módulos de nós e registra suas definições.
-
-        Este método implementa a lógica de descoberta automática. Ele itera sobre
-        os submódulos do pacote 'node', importa-os dinamicamente e busca pela
-        função 'get_node_definition' para registrar o nó.
-
-        Returns:
-            Dict[str, Callable]: Um dicionário com os nós carregados, mapeando
-                                 o nome do nó à sua função executável.
+        Importa os módulos de nós para ativar os decoradores,
+        depois retorna os nodes registrados no registry.
         """
-        if self.nodes:
-            return self.nodes
+        if self._loaded:
+            return node_registry.get_nodes()
 
-        print("Iniciando descoberta de nós...")
+        logger.info("🔍 Iniciando descoberta e carregamento de nós via registry...")
+        
+        # Força a importação dos __init__.py das pastas de nós
         for package in self.packages:
-            # pkgutil.iter_modules funciona bem para encontrar todos os submódulos
-            for _, module_name, _ in pkgutil.iter_modules(package.__path__):
+            self._import_node_packages(package)
+        
+        self._loaded = True
+        nodes = node_registry.get_nodes()
+        
+        logger.info(f"Carregamento finalizado. {len(nodes)} nós ativos encontrados no registry.")
+        
+        return nodes
+
+    def _import_node_packages(self, package):
+        """
+        Importa recursivamente os __init__.py de cada pasta de node.
+        Isso força a execução dos decoradores nos nodes ativos.
+        """
+        for _, module_name, is_pkg in pkgutil.iter_modules(package.__path__):
+            if is_pkg:  # É uma pasta de node (ex: 'orchestrator')
+                module_path = f"{package.__name__}.{module_name}"
                 try:
-                    # Constrói o caminho completo do módulo para importação
-                    module_path = f"{package.__name__}.{module_name}.{module_name}_node"
-
-                    # Importa o módulo do nó dinamicamente
-                    module = importlib.import_module(module_path)
-
-                    # Busca pela função de definição do nó
-                    if hasattr(module, "get_node_definition"):
-                        get_node_definition_func = getattr(module, "get_node_definition")
-                        node_name, node_function = get_node_definition_func()
-
-                        # Adiciona o nó ao nosso registro
-                        self.nodes[node_name] = node_function
-                        print(f"  -> Nó '{node_name}' carregado com sucesso.")
-                    else:
-                        print(
-                            f"  [AVISO] Módulo '{module_path}' não possui a função 'get_node_definition'."
-                        )
-
+                    # Importa o __init__.py da pasta do node.
+                    # Isso é o suficiente para ativar o registro.
+                    importlib.import_module(module_path)
+                    logger.debug(f"Pacote de node '{module_name}' importado com sucesso.")
                 except ImportError as e:
-                    print(f"  [ERRO] Falha ao importar o nó '{module_name}': {e}")
-                except Exception as e:
-                    print(f"  [ERRO] Erro ao carregar o nó '{module_name}': {e}")
+                    logger.warning(f"Falha ao importar pacote de node '{module_path}': {e}")
 
-        print("Descoberta de nós finalizada.")
-        return self.nodes
+    def get_registry_info(self) -> Dict:
+        """Retorna informações do registry para debugging."""
+        return {
+            "loaded": self._loaded,
+            "active_nodes": len(node_registry.get_nodes()),
+            "nodes_detail": node_registry.list_nodes()
+        }
